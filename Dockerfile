@@ -1,4 +1,4 @@
-FROM python:3.14-bookworm
+FROM python:3.14-trixie
 
 RUN apt-get update && \
     apt-get install -y git gettext libmariadb-dev libpq-dev locales libmemcached-dev build-essential \
@@ -20,34 +20,32 @@ RUN apt-get update && \
 
 ENV LC_ALL=C.UTF-8
 
-
-COPY pretalx/pyproject.toml /pretalx
-COPY pretalx/src /pretalx/src
-COPY deployment/docker/pretalx.bash /usr/local/bin/pretalx
-COPY deployment/docker/supervisord.conf /etc/supervisord.conf
+COPY --chown=pretalxuser:pretalxuser pretalx/pyproject.toml /pretalx
+COPY --chown=pretalxuser:pretalxuser pretalx/src /pretalx/src
+COPY --chown=root:root deployment/docker/pretalx.bash /usr/local/bin/pretalx
+COPY --chown=root:root deployment/docker/supervisord.conf /etc/supervisord.conf
 
 RUN pip3 install -U pip setuptools wheel typing && \
     pip3 install -e /pretalx/[mysql,postgres,redis] && \
     pip3 install pylibmc && \
     pip3 install gunicorn
 
-
-RUN python3 -m pretalx makemigrations
-RUN python3 -m pretalx migrate
-
 RUN apt-get update && \
     apt-get install -y nodejs npm && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    python3 -m pretalx rebuild
+    rm -rf /var/lib/apt/lists/*
 
-RUN chmod +x /usr/local/bin/pretalx && \
-    cd /pretalx/src && \
-    rm -f pretalx.cfg && \
-    chown -R pretalxuser:pretalxuser /pretalx /data /public && \
-    rm -f /pretalx/src/data/.secret
+RUN chmod +x /usr/local/bin/pretalx
+
+RUN python3 -m pretalx makemigrations && \
+    python3 -m pretalx migrate && \
+    python3 -m pretalx rebuild && \
+    rm -f /pretalx/src/pretalx.cfg && \
+    rm -f /pretalx/src/data/.secret && \
+    chown -R pretalxuser:pretalxuser /pretalx /data /public /etc/pretalx
 
 USER pretalxuser
+
 VOLUME ["/etc/pretalx", "/data", "/public"]
 EXPOSE 80
 ENTRYPOINT ["pretalx"]
