@@ -5,6 +5,9 @@ services:
     # build: .
     container_name: pretalx
     restart: unless-stopped
+    # Note: cannot enable `security_opt: [no-new-privileges:true]` here because
+    # the entrypoint relies on sudo to launch supervisord. The `db` and `redis`
+    # services below do enable it.
     depends_on:
       - redis
       - db
@@ -23,6 +26,8 @@ services:
     image: docker.io/library/postgres:15-alpine
     container_name: pretalx-db
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - pretalx-database:/var/lib/postgresql/data
     environment:
@@ -34,6 +39,8 @@ services:
     image: redis:latest
     container_name: pretalx-redis
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - pretalx-redis:/data
 
