@@ -5,9 +5,8 @@ services:
     # build: .
     container_name: pretalx
     restart: unless-stopped
-    # Note: cannot enable `security_opt: [no-new-privileges:true]` here because
-    # the entrypoint relies on sudo to launch supervisord. The `db` and `redis`
-    # services below do enable it.
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       - redis
       - db
