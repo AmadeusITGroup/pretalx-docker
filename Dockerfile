@@ -3,7 +3,6 @@ FROM python:3.14-slim-trixie
 RUN apt-get update && \
     apt-get install -y git gettext libmariadb-dev libpq-dev locales libmemcached-dev build-essential \
             supervisor \
-            sudo \
             locales \
             --no-install-recommends && \
     apt-get clean && \
@@ -15,8 +14,7 @@ RUN apt-get update && \
     mkdir /data && \
     mkdir /public && \
     groupadd -g 999 pretalxuser && \
-    useradd -r -u 999 -g pretalxuser -d /pretalx -ms /bin/bash pretalxuser && \
-    echo 'pretalxuser ALL=(ALL) NOPASSWD:SETENV: /usr/bin/supervisord' >> /etc/sudoers
+    useradd -r -u 999 -g pretalxuser -d /pretalx -ms /bin/bash pretalxuser
 
 ENV LC_ALL=C.UTF-8
 
